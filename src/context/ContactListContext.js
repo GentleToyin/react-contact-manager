@@ -1,78 +1,69 @@
-import React, { useState, useEffect } from 'react';
-import { createContext } from 'react/cjs/react.development';
-import axios from 'axios';
+import React, { useState, useEffect, createContext } from "react";
+// import { createContext } from 'react/cjs/react.development';
+import axios from "axios";
 
-
-
-export const ContactListContext = createContext()
-
+export const ContactListContext = createContext();
 
 const ContactListContextProvider = (props) => {
+  const [contacts, setContacts] = useState([]);
 
-    const [contacts, setContacts] = useState([])
+  //Fetch Contacts
+  useEffect(() => {
+    const fetchContacts = async () => {
+      const { data } = await axios.get(
+        "https://jsonplaceholder.typicode.com/users"
+      );
 
+      setContacts(data);
+    };
+    fetchContacts();
+  }, []);
+  const [editContactItem, setEditContactItem] = useState(null);
 
-    //Fetch Contacts
-    useEffect(() => {
-        const fetchContacts = async () => {
-            const { data } = await axios.get('https://jsonplaceholder.typicode.com/users')
+  //Add Contact
+  const addContact = (contact) => {
+    const id = Math.floor(Math.random() * 10000) + 1;
+    const newContact = { id, ...contact };
 
-            setContacts(data)
-        }
-        fetchContacts()
-    }, [])
-    const [editContactItem, setEditContactItem] = useState(null)
+    setContacts([...contacts, newContact]);
+  };
 
-    //Add Contact
-    const addContact = (contact) => {
-        const id = Math.floor(Math.random() * 10000) + 1
-        const newContact = { id, ...contact }
+  //Edit Contact
 
+  const findContact = (id) => {
+    const contactItem = contacts.find((contact) => contact.id === id);
 
-        setContacts([...contacts, newContact])
-    }
+    setEditContactItem(contactItem);
+  };
 
+  const editContact = (name, phone, id) => {
+    const newContacts = contacts.map((contact) =>
+      contact.id === id ? { name, phone, id } : contact
+    );
 
-    //Edit Contact
+    setContacts(newContacts);
+    setEditContactItem(null);
+  };
 
-    const findContact = (id) => {
-        const contactItem = contacts.find(contact => contact.id === id)
+  //Delete Contact
+  const deleteContact = (id) => {
+    setContacts(contacts.filter((task) => task.id !== id));
+  };
 
-        setEditContactItem(contactItem)
-    }
-
-    const editContact = (name, phone, id) => {
-        const newContacts = contacts.map(contact => (contact.id === id ? { name, phone, id } : contact))
-
-
-        setContacts(newContacts)
-        setEditContactItem(null)
-
-    }
-
-
-    //Delete Contact
-    const deleteContact = (id) => {
-        setContacts(contacts.filter(task => task.id !== id))
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-    return (
-        <ContactListContext.Provider value={{ contacts, addContact, deleteContact, findContact, editContact, editContactItem }}>
-            {props.children}
-        </ContactListContext.Provider >
-    )
-
-}
+  return (
+    <ContactListContext.Provider
+      value={{
+        contacts,
+        addContact,
+        deleteContact,
+        findContact,
+        editContact,
+        editContactItem,
+      }}
+    >
+      {props.children}
+    </ContactListContext.Provider>
+  );
+};
 
 export default ContactListContextProvider;
